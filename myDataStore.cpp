@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <queue>
+#include "util.h"
 
 void myDataStore::addProduct(Product* p) {
     std::set<std::string>::iterator it;
@@ -22,8 +23,8 @@ void myDataStore::addProduct(Product* p) {
     
 void myDataStore::addUser(User* u) {
     std::queue<Product*> userq;
-    umap[u->getName()] = userq; 
-    usermap[u->getName()] = u;
+    umap[convToLower(u->getName())] = userq; 
+    usermap[convToLower(u->getName())] = u;
 }
 
 std::vector<Product*> myDataStore::search(std::vector<std::string>& terms, int type){
@@ -109,6 +110,9 @@ void myDataStore::buyCart(std::string s) {
             if (umap[s].front()->getQty() >= 1 && u->getBalance() >= amt) {
                 u->deductAmount(amt);
                 umap[s].front()->subtractQty(1);
+                if(umap[s].front()->getQty()==0){
+                  delete umap[s].front();
+                }
                 umap[s].pop();
             } else {
                 newq.push(umap[s].front());
