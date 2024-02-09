@@ -15,6 +15,7 @@ public:
     std::vector<Product*> search(std::vector<std::string>& terms, int type);
     void dump(std::ostream& ofile);
     std::set<Product*> productset;
+    std::set<User*> userset;
     std::map<std::string, User*> usermap;
     std::map<std::string, std::set<Product*>> pmap;
     std::map<std::string, std::queue<Product*>> umap;
@@ -22,5 +23,6 @@ public:
     bool userIncluded(std::string s);
     void viewCart(std::string s);
     void buyCart(std::string s);
+    ~myDataStore();
 };
 #endif

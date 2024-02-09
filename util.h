@@ -26,7 +26,7 @@ std::set<T> setUnion(std::set<T>& s1, std::set<T>& s2)
 {
     std::set<T> uni=s1;
     for(T c:s2){
-        if(uni.find(c)!=uni.end()){
+        if(uni.find(c)==uni.end()){ // not found
             uni.insert(c);
         }
     }

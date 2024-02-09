@@ -7,47 +7,57 @@
 #include <queue>
 #include "util.h"
 
-void myDataStore::addProduct(Product* p) {
+void myDataStore::addProduct(Product* p){
+    if(productset.find(p)!=productset.end()){return;}
+    std::set<std::string> current = p->keywords();
+
     std::set<std::string>::iterator it;
-    for (it = p->keywords().begin(); it != p->keywords().end(); ++it) {
-        if (pmap.find(*it) == pmap.end()) {
-            std::set<Product*> kset;
-            kset.insert(p);
-            pmap[(*it)] = kset;
-        } else {
-            pmap[(*it)].insert(p);
-        }
+    for(it = current.begin(); it != current.end(); ++it){
+      if(pmap.find(*it) == pmap.end()){
+        std::set<Product*> currProdSet;
+        currProdSet.insert(p);
+        pmap.insert(std::make_pair(*it, currProdSet));
+      } else {
+        pmap[*it].insert(p);
+      }
     }
     productset.insert(p);
 }
     
 void myDataStore::addUser(User* u) {
+  if(userset.find(u)!=userset.end()){return;}
     std::queue<Product*> userq;
     umap[convToLower(u->getName())] = userq; 
     usermap[convToLower(u->getName())] = u;
+    userset.insert(u);
 }
 
 std::vector<Product*> myDataStore::search(std::vector<std::string>& terms, int type){
-    if(type == 0){
-        std::set<Product*> pset;
-        std::vector<Product*> endset;
-        if(pmap.find(terms[0]) != pmap.end()){
-            pset = pmap[terms[0]];
-            for(std::set<Product*>::iterator it = pset.begin(); it != pset.end(); ++it) {
-                bool check = true;
-                for (std::vector<std::string>::iterator i = terms.begin(); i != terms.end(); ++i) {
-                    if ((*it)->keywords().find(*i) == (*it)->keywords().end())
-                        check = false;
-                }
-                if(check){
-                    endset.push_back(*it);
-                }
-            }
-            return endset;
-        } else {
-            std::vector<Product*> endset;
-            return endset;
-        }
+    if (type == 0) {
+      std::set<Product*> pset;
+      std::vector<Product*> endset;
+
+      for (std::vector<std::string>::iterator i = terms.begin(); i != terms.end(); ++i) {
+          if (pmap.find(*i) != pmap.end()) {
+              // Initialize pset with the first set of products
+              if (pset.empty()) {
+                  pset = pmap[*i];
+              } else {
+                  // Intersect pset with the set of products for the current term
+                  std::set<Product*> intersection;
+                  std::set_intersection(pset.begin(), pset.end(), pmap[*i].begin(), pmap[*i].end(),
+                                        std::inserter(intersection, intersection.begin()));
+                  pset = intersection;
+              }
+          }
+      }
+      // Now pset contains the intersection of products for all terms
+      // Add them to endset
+      for (std::set<Product*>::iterator it = pset.begin(); it != pset.end(); ++it) {
+          endset.push_back(*it);
+      }
+
+      return endset;
     } else if (type == 1){
         std::vector<Product*> pset;
         for(std::vector<std::string>::iterator i = terms.begin(); i != terms.end(); ++i) {
@@ -64,16 +74,18 @@ std::vector<Product*> myDataStore::search(std::vector<std::string>& terms, int t
 }
 
 void myDataStore::dump(std::ostream& ofile){
-    ofile << "<products>" << std::endl;
-    for (std::set<Product*>::iterator it = productset.begin(); it != productset.end(); ++it) {
-        (*it)->dump(ofile);
-    }
-    ofile << "</products>" << std::endl;
-    ofile << "<users>" << std::endl;
-    for (std::map<std::string, User*>::iterator it = usermap.begin(); it != usermap.end(); ++it) {
-        it->second->dump(ofile);
-    }
-    ofile << "</users>" << std::endl;
+  ofile << "<products>" << std::endl;
+  std::set<Product*>::iterator it1;
+  for(it1 = productset.begin(); it1 != productset.end(); ++it1){
+    (*it1)->dump(ofile);
+  }
+  ofile << "</products>" << std::endl;
+  ofile << "<users>" << std::endl;
+  std::set<User*>::iterator it2;
+  for(it2 = userset.begin(); it2 != userset.end(); ++it2){
+    (*it2)->dump(ofile);
+  }
+  ofile << "</users>" << std::endl;
 }
 
 void myDataStore::addCart(std::string s, Product* p) {
@@ -93,11 +105,9 @@ void myDataStore::viewCart(std::string s) {
     }
 
     std::queue<Product*> p = umap[s];
-    int count = 1;
     while (!p.empty()) {
-        std::cout << count << ": " << p.front() << std::endl;
+        std::cout << p.front()->displayString();
         p.pop();
-        count++;
     }
 }
 
@@ -110,9 +120,6 @@ void myDataStore::buyCart(std::string s) {
             if (umap[s].front()->getQty() >= 1 && u->getBalance() >= amt) {
                 u->deductAmount(amt);
                 umap[s].front()->subtractQty(1);
-                if(umap[s].front()->getQty()==0){
-                  delete umap[s].front();
-                }
                 umap[s].pop();
             } else {
                 newq.push(umap[s].front());
@@ -122,5 +129,15 @@ void myDataStore::buyCart(std::string s) {
         umap[s] = newq;
     } else {
         std::cout << "Invalid username" << std::endl;
+    }
+}
+
+myDataStore::~myDataStore() {
+    for (std::set<Product*>::iterator it = productset.begin(); it != productset.end(); ++it) {
+        delete *it;
+    }
+
+    for (std::set<User*>::iterator it = userset.begin(); it != userset.end(); ++it) {
+        delete *it;
     }
 }

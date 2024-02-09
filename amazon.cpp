@@ -101,18 +101,19 @@ int main(int argc, char* argv[])
                 done = true;
             } 
 	    /* Add support for other commands here */
-            else if ( cmd == "ADD" ) {
-                string term;
-                string p; 
-                ss >> term;
-                term = convToLower(term);
-                if(ds.userIncluded(term)){
-                    ss >> p;
-                    if(hits.size()>=std::stoi(p)){
-                        ds.addCart(term, hits[(std::stoi(p)-1)]);
-                    }
-                }
-            }
+            else if (cmd == "ADD") {
+              string term;
+              string p;
+              ss >> term;
+              term = convToLower(term);
+              if (ds.userIncluded(term)) {
+                  ss >> p;
+                  size_t pIndex = static_cast<size_t>(std::stoi(p));  // Explicit cast to size_t
+                  if (pIndex <= hits.size()) {
+                      ds.addCart(term, hits[pIndex - 1]);
+                  }
+              }
+          }
             else if ( cmd == "VIEWCART" ) {
                 string term;
                 ss >> term;
