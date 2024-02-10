@@ -113,6 +113,9 @@ int main(int argc, char* argv[])
                       ds.addCart(term, hits[pIndex - 1]);
                   }
               }
+              else {
+                cout << "Invalid request" << endl;
+              }
           }
             else if ( cmd == "VIEWCART" ) {
                 string term;

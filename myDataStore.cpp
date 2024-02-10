@@ -44,9 +44,7 @@ std::vector<Product*> myDataStore::search(std::vector<std::string>& terms, int t
                   pset = pmap[*i];
               } else {
                   // Intersect pset with the set of products for the current term
-                  std::set<Product*> intersection;
-                  std::set_intersection(pset.begin(), pset.end(), pmap[*i].begin(), pmap[*i].end(),
-                                        std::inserter(intersection, intersection.begin()));
+                  std::set<Product*> intersection = setIntersection(pset, pmap[*i]);
                   pset = intersection;
               }
           }
@@ -92,6 +90,10 @@ void myDataStore::addCart(std::string s, Product* p) {
     if (umap.find(s) != umap.end()) {
         umap[s].push(p);
     }
+    else
+    {
+        std::cout <<"Invalid request" << std::endl;
+    }
 }
 
 bool myDataStore::userIncluded(std::string s) {
@@ -99,6 +101,7 @@ bool myDataStore::userIncluded(std::string s) {
 }
 
 void myDataStore::viewCart(std::string s) {
+    int item = 1;
     if (umap.find(s) == umap.end()) {
         std::cout << "Invalid username" << std::endl;
         return;
@@ -106,8 +109,10 @@ void myDataStore::viewCart(std::string s) {
 
     std::queue<Product*> p = umap[s];
     while (!p.empty()) {
-        std::cout << p.front()->displayString();
+        std::cout << "Item " << item << std::endl;
+        std::cout << p.front()->displayString() << std::endl;
         p.pop();
+        item++;
     }
 }
 

@@ -21,7 +21,7 @@ std::set<std::string> parseStringToWords(string rawWords)
     for(size_t i=0; i<lower.length(); i++){
         if(lower[i] == '\''){
             lower[i] = ' ';
-        } else if (ispunct(lower[i])){
+        } else if (ispunct(lower[i]) && lower[i] != '-'){
             lower.erase(i, 1);
         }
     }
